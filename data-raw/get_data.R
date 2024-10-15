@@ -43,10 +43,11 @@ get_population_data = function(link) {
 
 }
 
-pop.tbl =
+population  =
   get_population_data(
     "https://www.abs.gov.au/statistics/people/population/regional-population/latest-release"
     )
+usethis::use_data(population)
 
 
 get_esc_data = function(link) {
@@ -235,26 +236,21 @@ get_services = function(df1, df2) {
 }
 
 services = get_services(esc.tbl,vago.tbl)
+usethis::use_data(services, overwrite = TRUE)
+
 kpis = get_kpis(esc.tbl,vago.tbl)
+usethis::use_data(kpis, overwrite = TRUE)
+
 revenue  = get_revenue(esc.tbl,vago.tbl)
+usethis::use_data(revenue, overwrite = TRUE)
+
 expenditure = get_expenditure(esc.tbl,vago.tbl)
+usethis::use_data(expenditure, overwrite = TRUE)
+
 category = get_category(vago.tbl)
+usethis::use_data(category, overwrite = TRUE)
+
 facts = get_key_facts(esc.tbl)
+usethis::use_data(facts, overwrite = TRUE)
 
 
-mutate(value = as.numeric(value)) |>
-  filter(!is.na(value)) |>
-  mutate(value = as.numeric(value),
-         lga_name = clean_lga_name(lga_name),
-         measure = str_replace(measure,"Employee.*","Employee benefits"),
-         measure = str_replace(measure,".*(G|g)rants.*","Grants"),
-         measure = str_replace(measure,"Other.*","Other revenue"),
-         measure = str_replace(measure,".*fees.*","User fees and statutory fees")) |>
-  group_by(source, lga_name, financial_year, measure) |>
-  summarise(value = round(sum(value)/1000)*1000) |>
-  ungroup() |>
-  select(-source) |>
-  unique() |>
-  group_by(lga_name, financial_year, measure) |>
-  slice(1) |>
-  ungroup()

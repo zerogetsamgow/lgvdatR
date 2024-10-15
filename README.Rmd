@@ -18,37 +18,23 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of lgvdatR is to ...
+The goal of {lgvdatR} is to create easily accessible datasets related to Local Governments in Victoria.
+
+{lgvdatR} compiles data from the 
+
+[Essential Service Commission's Local Council Outcomes Report](https://www.esc.vic.gov.au/local-government/rate-capping-outcomes-reports/local-council-outcomes-report-2023)
+
+[Victorian Audit-General's Office's Results of Local Government Audits Report](https://www.audit.vic.gov.au/report/results-2022-23-audits-local-government)
+
+[Australian Bureau of Statistic's Regional Population](    https://www.abs.gov.au/statistics/people/population/regional-population/latest-release)
+
+Data from these sources is saved in `r length(list.files("./data"))` datasets, `r unlist(list.files("./data"))`
 
 ## Installation
 
-You can install the development version of lgvdatR like so:
+You can install the development version of {lgvdatR} from [GitHub](www.github.com/zerogetsamgow) with:
 
 ``` r
-# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
+# install.packages("devtools")
+devtools::install_github("zerogetsamgow/lgvdatR")
 ```
-
-## Example
-
-This is a basic example which shows you how to solve a common problem:
-
-```{r example}
-library(lgvdatR)
-## basic example code
-```
-
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
-
-```{r cars}
-summary(cars)
-```
-
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this.
-
-You can also embed plots, for example:
-
-```{r pressure, echo = FALSE}
-plot(pressure)
-```
-
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.
