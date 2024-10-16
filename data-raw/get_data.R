@@ -225,17 +225,17 @@ get_revenue = function (df1, df2) {
     mutate(value = as.numeric(value)) |>
     filter(!is.na(value)) |>
     mutate(value = as.numeric(value),
-          # measure = str_replace(measure,"Contributions.*","Contributions"),
+           measure = str_replace(measure,"Contributions.*","Contributions"),
            measure = str_replace(measure,".*(G|g)rants.*","Grants"),
            measure = str_replace(measure,"Other.*","Other revenue"),
            measure = str_replace(measure,".*fees.*","User fees and statutory fees")) |>
     group_by(source, lga_name, financial_year, measure) |>
     summarise(value = round(sum(value)/1000)*1000) |>
-    ungroup() # |>
-  #  select(-source) |>
-  #  unique() |>
-  #  group_by(lga_name, financial_year, measure) |>
-  #  slice(1)
+    ungroup() |>
+    select(-source) |>
+    unique() |>
+    group_by(lga_name, financial_year, measure) |>
+    slice(1)
 
 }
 
