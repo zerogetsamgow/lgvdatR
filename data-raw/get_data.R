@@ -76,7 +76,8 @@ get_esc_data = function(link) {
       data=pmap(list(download,sheets,"skip"=skip), readxl::read_excel, col_types = "text"))  |>
    unnest(data) |>
    janitor::clean_names() |>
-   mutate(lga_name = lgvdatR::clean_lga(council),
+   filter(!str_detect(council,"Metropolitan|Interface|Regional|Small|Large")) |>
+   mutate(lga_name =   lgvdatR::clean_lga(council),
           value = coalesce(value,value_in_nominal_terms),
           financial_year = str_replace_all(financial_year,"-|–","-"),
           financial_year = str_extract(financial_year,"[0-9]{4}-[0-9]{2}")) |>
