@@ -48,7 +48,6 @@ population  =
   get_population_data(
     "https://www.abs.gov.au/statistics/people/population/regional-population/latest-release"
     )
-
 usethis::use_data(population, overwrite = TRUE)
 
 
@@ -142,30 +141,7 @@ get_category = function (df) {
 
 
 
-get_revenue = function (df1, df2) {
 
-  bind_rows(
-    df1 |> mutate(source = "df1"),
-    df2 |> mutate(source = "df2")
-    ) |>
-    filter(sheets == "Revenue",  !str_detect(measure, "per person")) |>
-    select(source, lga_name, financial_year, measure, value) |>
-    mutate(value = as.numeric(value)) |>
-    filter(!is.na(value)) |>
-    mutate(value = as.numeric(value),
-           measure = str_replace(measure,"Contributions.*","Contributions"),
-           measure = str_replace(measure,".*(G|g)rants.*","Grants"),
-           measure = str_replace(measure,"Other.*","Other revenue"),
-           measure = str_replace(measure,".*fees.*","User fees and statutory fees")) |>
-    group_by(source, lga_name, financial_year, measure) |>
-    summarise(value = round(sum(value)/1000)*1000) |>
-    ungroup() |>
-    select(-source) |>
-    unique() |>
-    group_by(lga_name, financial_year, measure) |>
-    slice(1)
-
-}
 
 get_expenditure = function (df1, df2) {
 
@@ -236,6 +212,32 @@ usethis::use_data(services, overwrite = TRUE)
 
 kpis = get_kpis(esc.tbl,vago.tbl)
 usethis::use_data(kpis, overwrite = TRUE)
+
+
+get_revenue = function (df1, df2) {
+
+  bind_rows(
+    df1 |> mutate(source = "df1"),
+    df2 |> mutate(source = "df2")
+  ) |>
+    filter(sheets == "Revenue",  !str_detect(measure, "per person")) |>
+    select(source, lga_name, financial_year, measure, value) |>
+    mutate(value = as.numeric(value)) |>
+    filter(!is.na(value)) |>
+    mutate(value = as.numeric(value),
+          # measure = str_replace(measure,"Contributions.*","Contributions"),
+           measure = str_replace(measure,".*(G|g)rants.*","Grants"),
+           measure = str_replace(measure,"Other.*","Other revenue"),
+           measure = str_replace(measure,".*fees.*","User fees and statutory fees")) |>
+    group_by(source, lga_name, financial_year, measure) |>
+    summarise(value = round(sum(value)/1000)*1000) |>
+    ungroup() # |>
+  #  select(-source) |>
+  #  unique() |>
+  #  group_by(lga_name, financial_year, measure) |>
+  #  slice(1)
+
+}
 
 revenue  = get_revenue(esc.tbl,vago.tbl)
 usethis::use_data(revenue, overwrite = TRUE)

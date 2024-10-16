@@ -31,6 +31,7 @@ names(lga_dict) <- lga_dict_tbl$lga_abbr
 lga_dict <- c(lga_dict,
               "Merri-bek" = "Moreland",
               "Colac Otway" = "Colac-Otway",
+              "Melton" = "Melton Shire Council",
               "The Rat" = "Ballarat")
 
 # Add no spaced versions
