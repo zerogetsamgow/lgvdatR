@@ -48,6 +48,7 @@ population  =
   get_population_data(
     "https://www.abs.gov.au/statistics/people/population/regional-population/latest-release"
     )
+
 usethis::use_data(population, overwrite = TRUE)
 
 
