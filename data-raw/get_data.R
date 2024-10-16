@@ -103,8 +103,10 @@ get_vago_data = function(link) {
       data=pmap(list(url), read_csv))  |>
     unnest(data) |>
     janitor::clean_names() |>
-    mutate(lga_name = coalesce(council, council_and_benchmark_averages) |>  lgvdatR::clean_lga()) |>
-    mutate(measure = coalesce(sub_category, attribute, attribute_2),
+    mutate(lga_name = coalesce(council, council_and_benchmark_averages)) |>
+    filter(!str_detect(lga_name,"Average|Median")) |>
+    mutate(lga_name =   lgvdatR::clean_lga(lga_name),
+           measure = coalesce(sub_category, attribute, attribute_2),
            value = coalesce(value,indicator_value),
            value = as.character(value)) |>
     rename("sheets" = composition_selection,
