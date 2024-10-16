@@ -36,7 +36,8 @@ get_population_data = function(link) {
            year,
            population) |>
     mutate(year = as.numeric(year),
-           population = as.numeric(population)) |>
+           population = as.numeric(population),
+           lga_name = lgvdatR::clean_lga(lga_name)) |>
     filter(!is.na(population)) |>
     mutate(financial_year = str_c(year-1,"-",str_sub(year,3,4))) |>
     filter(str_sub(lga_code,1,1) == "2")
@@ -47,7 +48,7 @@ population  =
   get_population_data(
     "https://www.abs.gov.au/statistics/people/population/regional-population/latest-release"
     )
-usethis::use_data(population)
+usethis::use_data(population, overwrite = TRUE)
 
 
 get_esc_data = function(link) {
@@ -75,12 +76,13 @@ get_esc_data = function(link) {
       data=pmap(list(download,sheets,"skip"=skip), readxl::read_excel, col_types = "text"))  |>
    unnest(data) |>
    janitor::clean_names() |>
-   mutate(value = coalesce(value,value_in_nominal_terms),
-          financial_year = str_replace(financial_year,"-|–","-"),
+   mutate(lga_name = lgvdatR::clean_lga(council),
+          value = coalesce(value,value_in_nominal_terms),
+          financial_year = str_replace_all(financial_year,"-|–","-"),
           financial_year = str_extract(financial_year,"[0-9]{4}-[0-9]{2}")) |>
-   rename("lga_name" = council,
-           "council_category" = group) |>
-   select(sheets, lga_name:value,contains("actual"))
+   rename("council_category" = group) |>
+   select(lga_name, council_category:value, sheets) |>
+   filter(!is.na(lga_name))
 
 }
 
@@ -101,7 +103,7 @@ get_vago_data = function(link) {
       data=pmap(list(url), read_csv))  |>
     unnest(data) |>
     janitor::clean_names() |>
-    mutate(lga_name = coalesce(council, council_and_benchmark_averages)) |>
+    mutate(lga_name = coalesce(council, council_and_benchmark_averages) |>  lgvdatR::clean_lga()) |>
     mutate(measure = coalesce(sub_category, attribute, attribute_2),
            value = coalesce(value,indicator_value),
            value = as.character(value)) |>
@@ -109,7 +111,8 @@ get_vago_data = function(link) {
            "financial_year"=year) |>
     group_by(lga_name) |>
     fill(council_category) |>
-    select(lga_name, measure, council_category, financial_year, sheets, sub_category, value)
+    select(lga_name, measure, council_category, financial_year, sheets, sub_category, value) |>
+    filter(!is.na(lga_name),!is.na(value))
 
 
 }
@@ -137,12 +140,6 @@ get_category = function (df) {
 }
 
 
-clean_lga_name = function(name) {
-  list = c("City","Shire","Rural","Council","Borough","of","\\(.*\\)")
-  str_remove_all(name, str_flatten(list,"|")) |>
-    str_trim()
-}
-
 
 get_revenue = function (df1, df2) {
 
@@ -155,7 +152,6 @@ get_revenue = function (df1, df2) {
     mutate(value = as.numeric(value)) |>
     filter(!is.na(value)) |>
     mutate(value = as.numeric(value),
-           lga_name = clean_lga_name(lga_name),
            measure = str_replace(measure,"Contributions.*","Contributions"),
            measure = str_replace(measure,".*(G|g)rants.*","Grants"),
            measure = str_replace(measure,"Other.*","Other revenue"),
@@ -181,7 +177,6 @@ get_expenditure = function (df1, df2) {
     mutate(value = as.numeric(value)) |>
     filter(!is.na(value)) |>
     mutate(value = as.numeric(value),
-           lga_name = clean_lga_name(lga_name),
            measure = str_replace(measure,"Employee.*","Employee benefits"),
            measure = str_replace(measure,".*(G|g)rants.*","Grants"),
            measure = str_replace(measure,"Other.*","Other revenue"),
@@ -228,7 +223,7 @@ get_services = function(df1, df2) {
         str_detect(sheets, "Services")
       )
     ) |>
-    select(lga_name, financial_year, measure, value, source) |>
+    select(lga_name, financial_year, measure, value) |>
     mutate(value = as.numeric(value)) |>
     filter(!is.na(value))
 

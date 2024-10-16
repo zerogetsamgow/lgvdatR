@@ -24,6 +24,10 @@ Data from these sources is saved in 7 datasets, category.rda,
 expenditure.rda, facts.rda, kpis.rda, population.rda, revenue.rda,
 services.rda
 
+{lgvdatR} includes one function `clean_lga()` that provides for cleaning
+of local government names. It borrows heavily from
+`strayr::clean_state()`
+
 ## Installation
 
 You can install the development version of {lgvdatR} from

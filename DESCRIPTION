@@ -16,3 +16,6 @@ BugReports: https://github.com/zerogetsamgow/lgvdatR/issues
 Depends: 
     R (>= 2.10)
 LazyData: true
+Imports: 
+    stringdist,
+    stringr

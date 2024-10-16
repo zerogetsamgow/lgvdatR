@@ -30,6 +30,8 @@ The goal of {lgvdatR} is to create easily accessible datasets related to Local G
 
 Data from these sources is saved in `r length(list.files("./data"))` datasets, `r unlist(list.files("./data"))`
 
+{lgvdatR} includes one function `clean_lga()` that provides for cleaning of local government names. It borrows heavily from `strayr::clean_state()`
+
 ## Installation
 
 You can install the development version of {lgvdatR} from [GitHub](www.github.com/zerogetsamgow) with:
