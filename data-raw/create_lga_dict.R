@@ -30,9 +30,7 @@ names(lga_dict) <- lga_dict_tbl$lga_abbr
 # Add known missing cases
 lga_dict <- c(lga_dict,
               "Merri-bek" = "Moreland",
-              "Merri-bek" = "City of Moreland",
               "Colac Otway" = "Colac-Otway",
-              "Melton" = "Melton Shire Council",
               "Ballarat" = "The Rat")
 
 # Add no spaced versions
