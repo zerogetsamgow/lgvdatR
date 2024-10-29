@@ -20,6 +20,6 @@
 revenue
 }
 \description{
-A tibble with 5 columns and 3931 rows.
+A tibble with 4 columns and 3535 rows.
 }
 \keyword{datasets}

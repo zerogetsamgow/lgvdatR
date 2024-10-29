@@ -20,6 +20,6 @@
 facts
 }
 \description{
-A tibble with 4 columns and 840 rows.
+A tibble with 4 columns and 790 rows.
 }
 \keyword{datasets}

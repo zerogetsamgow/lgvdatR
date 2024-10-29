@@ -21,6 +21,6 @@
 kpis
 }
 \description{
-A tibble with 5 columns and 8979 rows.
+A tibble with 5 columns and 8366 rows.
 }
 \keyword{datasets}

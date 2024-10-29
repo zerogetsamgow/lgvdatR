@@ -6,6 +6,9 @@
 \title{Population}
 \format{
 \subsection{\code{population}}{
+}
+
+\subsection{\code{population}}{
 
 \describe{
 \item{lga_code}{ABS Local government area code}
@@ -17,10 +20,25 @@
 }
 }
 }
+\source{
+https://www.abs.gov.au/statistics/people/population/regional-population/latest-release
+\describe{
+\item{lga_code}{ABS Local government area code}
+\item{lga_name}{Local government area name}
+\item{year}{Year ending 30 June data was estimated.}
+\item{population}{Population estimate, persons}
+\item{financial_year}{Financial year}
+...
+}
+}
 \usage{
+population
+
 population
 }
 \description{
+A tibble with 5 columns and 1840 rows.
+
 A tibble with 5 columns and 1840 rows.
 }
 \keyword{datasets}

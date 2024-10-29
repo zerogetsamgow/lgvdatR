@@ -5,9 +5,10 @@ library(rvest)
 
 
 get_population_data = function(link) {
-
+  # we need to add the url stub to the href
   stub = "https://www.abs.gov.au"
 
+  # pass link to read_html to get url
   link |>
     read_html() |>
     html_elements('div [href$="xlsx"]') |>
@@ -15,6 +16,7 @@ get_population_data = function(link) {
     as_tibble_col("url") |>
     filter(str_detect(url,"32180DS0004")) |>
     mutate(url = str_c(stub, url)) |>
+    # Download data
     mutate(
       download = tempfile(fileext = "xlsx")) |>
     mutate(x =
@@ -23,6 +25,7 @@ get_population_data = function(link) {
                function(a,b) if(!file.exists(b)) download.file(a,b,mode="wb"))
     )  |>
     select(-x) |>
+    # Extract and tidy
     mutate(sheets=map(download,readxl::excel_sheets)) |>
     unnest(sheets) |>
     filter(str_detect(sheets,"Table 1")) |>
@@ -44,10 +47,11 @@ get_population_data = function(link) {
 
 }
 
+
 population  =
   get_population_data(
     "https://www.abs.gov.au/statistics/people/population/regional-population/latest-release"
-    )
+  )
 usethis::use_data(population, overwrite = TRUE)
 
 
@@ -62,7 +66,7 @@ get_esc_data = function(link) {
     mutate(
       url = str_c(stub ,url),
       download = tempfile(fileext = "xlsx")) |>
-   mutate(x =
+    mutate(x =
            pmap(
              list(url,download),
              function(a,b) if(!file.exists(b)) download.file(a,b,mode="wb"))
@@ -120,7 +124,51 @@ get_vago_data = function(link) {
 
 }
 
+
 vago.tbl = get_vago_data("https://www.audit.vic.gov.au/report/results-2022-23-audits-local-government")
+
+
+get_lgv_data = function(link) {
+
+  link |>
+    read_html() |>
+    html_elements('li [href$="xlsx"]') |>
+    html_attr("href") |>
+    as_tibble_col("url") |>
+    filter(str_detect(url,"Data-Set")) |>
+    rowwise() |>
+    mutate(
+      download = tempfile(fileext = "xlsx")) |>
+    mutate(x =
+             pmap(
+               list(url,download),
+               function(a,b) if(!file.exists(b)) download.file(a,b,mode="wb"))
+    )  |>
+    select(-x) |>
+    mutate(sheets=map(download,readxl::excel_sheets)) |>
+    unnest(sheets) |>
+    filter(str_detect(sheets,"Indic")) |>
+    mutate(
+      data=pmap(list(download,sheets), readxl::read_excel, col_types = "text"))  |>
+    unnest(data) |>
+    janitor::clean_names() |>
+    select(
+      "lga_name" = council,
+      sheets,
+      id,
+      "measure" = description,
+      "value" = result
+    ) |>
+    mutate(
+      lga_name = lgvdatR::clean_lga(lga_name),
+      financial_year = str_extract(sheets,"[0-9]{4}-[0-9]{2}"),
+      value = as.numeric(value)) |>
+    group_by(id) |>
+    mutate(measure = first(measure))
+
+  }
+
+
 
 
 
@@ -180,12 +228,14 @@ get_kpis = function(df1, df2) {
     ) |>
       filter(
         (
-         str_detect(source, "PRF") |
+         str_detect(source, "PRF")
+         |
          str_detect(measure, "ratio|\\%\\)")
         )
         ) |>
       select(lga_name, financial_year, measure, value, source) |>
-      mutate(value = as.numeric(value)) |>
+      mutate(value = as.numeric(value),
+             source = coalesce(source,"VAGO")) |>
       filter(!is.na(value))
 
 
@@ -199,9 +249,8 @@ get_services = function(df1, df2) {
     df2
   ) |>
     filter(
-      (
-        str_detect(sheets, "Services")
-      )
+        str_detect(sheets, "Services"),
+        !str_detect(source, "KPF")
     ) |>
     select(lga_name, financial_year, measure, value) |>
     mutate(value = as.numeric(value)) |>
@@ -209,12 +258,6 @@ get_services = function(df1, df2) {
 
 
 }
-
-services = get_services(esc.tbl,vago.tbl)
-usethis::use_data(services, overwrite = TRUE)
-
-kpis = get_kpis(esc.tbl,vago.tbl)
-usethis::use_data(kpis, overwrite = TRUE)
 
 
 get_revenue = function (df1, df2) {
@@ -242,6 +285,17 @@ get_revenue = function (df1, df2) {
 
 }
 
+
+services = get_services(esc.tbl,vago.tbl)
+usethis::use_data(services, overwrite = TRUE)
+
+kpis = get_kpis(esc.tbl,vago.tbl)
+usethis::use_data(kpis, overwrite = TRUE)
+
+lgv_prf = get_lgv_data("https://www.localgovernment.vic.gov.au/strengthening-councils/performance-reporting")
+usethis::use_data(lgv_prf, overwrite = TRUE)
+
+
 revenue  = get_revenue(esc.tbl,vago.tbl)
 usethis::use_data(revenue, overwrite = TRUE)
 
@@ -253,5 +307,56 @@ usethis::use_data(category, overwrite = TRUE)
 
 facts = get_key_facts(esc.tbl)
 usethis::use_data(facts, overwrite = TRUE)
+
+
+get_rental_data = function(link) {
+
+  stub = "https://www.dffh.vic.gov.au"
+  link |>
+    read_html() |>
+    html_elements('p a') |>
+    html_attr("href") |>
+    as_tibble_col("url")  |>
+    filter(str_detect(url,"local-government-area"),
+           str_detect(url,"rents")) |>
+    rowwise() |>
+    mutate(
+      url = str_c(stub,url),
+      download = tempfile(fileext = "xlsx")) |>
+    mutate(x =
+             pmap(
+               list(url,download),
+               function(a,b) if(!file.exists(b)) download.file(a,b,mode="wb"))
+    )  |>
+    select(-x) |>
+    mutate(sheets=map(download,readxl::excel_sheets)) |>
+    unnest(sheets) |>
+    mutate(
+      data=pmap(list(download,sheets), readxl::read_excel, skip = 1, col_types = "text"))  |>
+    unnest(data) |>
+    janitor::clean_names() |>
+    pivot_longer(cols = contains("19") | contains("20"), names_to = "rental_date") |>
+    filter(!is.na(value),
+           !str_detect(x2,"Metro|Group|Victoria")) |>
+    mutate(rental_stub = str_extract(rental_date,"[0-9]+$") |>  as.numeric(),
+           rental_date = str_replace(rental_date,"mar_2017_14(7|8)","jun_2017_1"),
+           rental_date = str_remove(rental_date,"_[0-9]+$"),
+           rental_date = my(rental_date),
+           rental_date = ceiling_date(rental_date, unit = "months")
+           lga_name = lgvdatR::clean_lga(x2),
+          ) |>
+    select("rental_type"=sheets, lga_name, rental_date, value, rental_stub) |>
+    group_by(rental_type, lga_name, rental_date)  |>
+    arrange(rental_type, lga_name, rental_date, rental_stub) |>
+    mutate(
+      measure = list("rental_count","median_rent"),
+      value = as.integer(value)
+    ) |>
+    select(-rental_stub)
+}
+
+
+lgv_rents = get_rental_data("https://www.dffh.vic.gov.au/publications/rental-report")
+usethis::use_data(lgv_rents, overwrite = TRUE)
 
 

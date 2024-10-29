@@ -20,6 +20,6 @@
 expenditure
 }
 \description{
-A tibble with 4 columns and 3541 rows.
+A tibble with 4 columns and 3219 rows.
 }
 \keyword{datasets}
